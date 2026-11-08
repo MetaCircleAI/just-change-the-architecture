@@ -22,7 +22,7 @@
 <p>SuperMimic 借助可微世界模型训练人形机器人，把 SONIC 需要 128 张 GPU 跑 7 天的训练，缩短到 1 张 GPU 跑 3 小时。我们重新设计了它的策略网络架构，结合一定的工程优化，又把这 3 小时缩短到了 <strong>26.6 分钟</strong>。</p>
 <p>V-JEPA 是 Meta 提出的视频世界模型：它通过预测视频中被遮住的部分，从大量无标注视频中学习物理规律。在一个碰撞预测任务上，我们仅更换其编码器的架构，就把准确率从 <strong>67%</strong> 提升到了 <strong>96%</strong>。</p>
 <p>两个结果说明了同一件事：在数据、规模和训练方法之外，世界模型的架构本身还远没有被挖掘充分。</p>
-<figure class="fig wide"><img src="figures/hero_two_rows_3200.png" alt="图 1" loading="lazy"><figcaption><b>图 1</b>　上：SuperMimic 人形机器人动作跟踪。左为同一段动作（奔跑中侧身闪避、转身 270° 后继续跑），原架构中途摔倒，我们的架构完整跑完；右为单张 GPU 上达到 SuperMimic 训练 3 小时水平所需的时间。下：视频世界模型的碰撞预测。左为任务示例，模型需要判断小球会不会撞上方块；右为测试集上的错误率。</figcaption></figure>
+<figure class="fig wide"><picture><source media="(max-width: 900px)" srcset="figures/m/hero_two_rows_3200.jpg"><img src="figures/hero_two_rows_3200.png" alt="图 1" decoding="async"></picture><figcaption><b>图 1</b>　上：SuperMimic 人形机器人动作跟踪。左为同一段动作（奔跑中侧身闪避、转身 270° 后继续跑），原架构中途摔倒，我们的架构完整跑完；右为单张 GPU 上达到 SuperMimic 训练 3 小时水平所需的时间。下：视频世界模型的碰撞预测。左为任务示例，模型需要判断小球会不会撞上方块；右为测试集上的错误率。</figcaption></figure>
 
 <h2>被忽略的一环</h2>
 <p>过去两年，世界模型进展飞快：V-JEPA 2 从海量视频中学习物理直觉，Genie 能生成可交互的虚拟世界，SuperMimic 用一个可微的世界模型，让人形机器人在单张 GPU 上学会十几万段动作。</p>
@@ -36,7 +36,7 @@
 <h3>新架构：先联合交互，再分开精炼</h3>
 <p>我们把 10 帧参考动作和 10 帧历史观测各自变成 10 个 token，每个 token 对应一帧。20 个 token 先一起做一次 joint attention：参考帧和历史帧可以互相查看，但两组各用自己的 Q/K/V 投影，保留各自的身份。随后两组分开，各自经过一层 SwiGLU 精炼。最后把所有 token 展平，经过一个小 MLP 输出动作。</p>
 <p>新架构没有 32 维瓶颈，参数却只有 167 万，约为原来的五分之一。</p>
-<figure class="fig"><img src="figures/supermimic_architecture.png" alt="图 2" loading="lazy"><figcaption><b>图 2</b>　两种策略架构。左：SuperMimic 原架构，参考动作先经 MLP 压缩为 32 维向量，再与展平的历史观测拼接解码。右：我们的架构，参考帧与历史帧各投影为 10 个 token，先做一次 joint attention，再各自经过 SwiGLU，最后由动作头输出 29 个关节目标。</figcaption></figure>
+<figure class="fig"><picture><source media="(max-width: 900px)" srcset="figures/m/supermimic_architecture.jpg"><img src="figures/supermimic_architecture.png" alt="图 2" loading="lazy" decoding="async"></picture><figcaption><b>图 2</b>　两种策略架构。左：SuperMimic 原架构，参考动作先经 MLP 压缩为 32 维向量，再与展平的历史观测拼接解码。右：我们的架构，参考帧与历史帧各投影为 10 个 token，先做一次 joint attention，再各自经过 SwiGLU，最后由动作头输出 29 个关节目标。</figcaption></figure>
 
 <h3>结果</h3>
 <p>我们让两个架构使用完全相同的训练配方，各训练 45 分钟后评测（表 1）。评测指标是 return，它衡量机器人把动作跟踪得有多准，满分为 1。</p>
@@ -64,14 +64,14 @@
 </table></div>
 <p>同样 45 分钟，原架构因为单步更快，多训练了 1000 多步，return 却仍然明显更低。</p>
 <p>在这套配方上再做一些工程优化，新架构在单张 H100 上只需 26.6 分钟，return 就达到了 SuperMimic 训练 3 小时的水平（图 3）。图 1 左边是一个具体例子：在"奔跑中侧身闪避、转身 270° 后继续跑"这段动作上，原架构中途摔倒，新架构完整跑完。</p>
-<figure class="fig"><img src="figures/supermimic_speed_curve.png" alt="图 3" loading="lazy"><figcaption><b>图 3</b>　单张 H100 上 return 随训练时间的变化。灰线取自 SuperMimic 论文；蓝线为我们的架构，每个点是一次全库评测（129,487 段动作），训练时间不含评测。虚线为目标 return 0.9363。</figcaption></figure>
+<figure class="fig"><picture><source media="(max-width: 900px)" srcset="figures/m/supermimic_speed_curve.jpg"><img src="figures/supermimic_speed_curve.png" alt="图 3" loading="lazy" decoding="async"></picture><figcaption><b>图 3</b>　单张 H100 上 return 随训练时间的变化。灰线取自 SuperMimic 论文；蓝线为我们的架构，每个点是一次全库评测（129,487 段动作），训练时间不含评测。虚线为目标 return 0.9363。</figcaption></figure>
 
 <h3>为什么有效</h3>
 <p>原架构隐含了一个要求：策略在看到机器人当前状态之前，就要先把未来 10 帧动作概括成一个 32 维向量。可是未来动作里哪些信息重要，恰恰取决于机器人此刻的状态。直觉上，快要失去平衡时，最该关注的是接下来一两帧怎么落脚；姿态稳定时，则可以看得更远。</p>
 <p>新架构把这个顺序倒了过来：先让历史帧和参考帧直接交互，每一帧历史观测都能找到与它相关的未来帧，然后两组再各自精炼。信息的取舍发生在"看过对方之后"，而不是之前。</p>
 <h2>例二：视频世界模型，预测碰撞</h2>
 <p>第二个例子来自视频世界模型。我们搭了一个简单而干净的 2D 物理世界：画面里有一个匀速运动的红球和一个静止的蓝色方块。模型看前 32 帧，要判断接下来 16 帧里红球会不会撞上方块。会撞和不会撞的场景各占一半，其中不少只是擦边而过，或者在最后几帧才撞上。</p>
-<figure class="fig"><img src="figures/collision_world.gif" alt="图 4" loading="lazy"><figcaption><b>图 4</b>　2D 碰撞世界的三个示例：撞上（左）、擦边而过（中）、不会撞（右）。红球匀速运动，蓝色方块静止。</figcaption></figure>
+<figure class="fig"><picture><source media="(max-width: 900px)" srcset="figures/m/collision_world.gif"><img src="figures/collision_world.gif" alt="图 4" loading="lazy" decoding="async"></picture><figcaption><b>图 4</b>　2D 碰撞世界的三个示例：撞上（左）、擦边而过（中）、不会撞（右）。红球匀速运动，蓝色方块静止。</figcaption></figure>
 
 <p>训练沿用 V-JEPA 的思路，分两步。先在 1 万段视频上做自监督预训练：遮住一部分画面，让模型在表征空间里预测被遮住的内容。预训练结束后冻结编码器，只在它的输出上训练一个小的读出头来判断是否碰撞。碰撞预测得准不准，反映的是编码器有没有从视频里学到物理规律。</p>
 <h3>原架构：标准的 Transformer</h3>
@@ -83,7 +83,7 @@
 <li>另一条支路直接从 patch token 出发，先在所有时空 token 上做自注意力，再用一次 cross-attention 去查询第一条支路的特征。</li>
 </ul>
 <p>两条支路组成的 cell 重复两次，最后合并输出，替换掉原来的 Transformer 编码器。编码器和预测器加起来约 87 万参数。</p>
-<figure class="fig"><img src="figures/collision_architecture.png" alt="图 5" loading="lazy"><figcaption><b>图 5</b>　两种视频编码器。左：缩小版 V-JEPA，patch token 依次经过两层标准 Transformer block，每层为自注意力加 MLP。右：我们的架构，两条支路组成的 cell 重复两次：一条支路先做 Δt（相邻时刻 token 之差），再经过时间卷积、空间卷积、时间轴自注意力和 MLP；另一条支路由时空自注意力和 cross-attention 组成，后者查询前一条支路的特征。两者之后接相同的预测器和读出头。</figcaption></figure>
+<figure class="fig"><picture><source media="(max-width: 900px)" srcset="figures/m/collision_architecture.jpg"><img src="figures/collision_architecture.png" alt="图 5" loading="lazy" decoding="async"></picture><figcaption><b>图 5</b>　两种视频编码器。左：缩小版 V-JEPA，patch token 依次经过两层标准 Transformer block，每层为自注意力加 MLP。右：我们的架构，两条支路组成的 cell 重复两次：一条支路先做 Δt（相邻时刻 token 之差），再经过时间卷积、空间卷积、时间轴自注意力和 MLP；另一条支路由时空自注意力和 cross-attention 组成，后者查询前一条支路的特征。两者之后接相同的预测器和读出头。</figcaption></figure>
 
 <h3>结果</h3>
 <p>两个模型使用相同的预训练配方（200 个 epoch）、相同的读出头和相同的数据划分。读出头的训练轮数按验证集选定后，在 1000 段从未见过的测试视频上评测（表 2）。</p>

@@ -25,8 +25,14 @@ affils_html = "".join(f'<span>{sup(a).translate(sup_map)}</span>' for a in affil
 # ---- figures: image line followed by a "**图 N** caption" paragraph
 def figure(m):
     alt, path, label, cap = m.group(1), m.group(2), m.group(3), m.group(4)
-    wide = " wide" if label.strip() == "图 1" else ""
-    return (f'\n<figure class="fig{wide}"><img src="{path}" alt="{html.escape(alt)}" loading="lazy">'
+    first = label.strip() == "图 1"
+    wide = " wide" if first else ""
+    name = path.rsplit("/", 1)[1]; stem, ext = name.rsplit(".", 1)
+    small = f"figures/m/{stem}.{'gif' if ext == 'gif' else 'jpg'}"
+    lazy = "" if first else ' loading="lazy"'
+    img = (f'<picture><source media="(max-width: 900px)" srcset="{small}">'
+           f'<img src="{path}" alt="{html.escape(alt)}"{lazy} decoding="async"></picture>')
+    return (f'\n<figure class="fig{wide}">{img}'
             f'<figcaption><b>{html.escape(label)}</b>　{html.escape(cap.strip())}</figcaption></figure>\n')
 rest = re.sub(r"!\[([^\]]*)\]\(([^)]+)\)\n\n\*\*(图 \d+)\*\*\s*([^\n]+)", figure, rest)
 

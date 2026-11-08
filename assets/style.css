@@ -34,6 +34,7 @@ li { margin: 6px 0; }
 a { color: var(--blue); text-decoration: none; border-bottom: 1px solid rgba(16, 72, 210, .3); }
 
 .fig { margin: 36px 0 40px; }
+.fig picture { display: block; }
 .fig img { display: block; width: 100%; height: auto; border-radius: 10px; }
 .fig.wide { margin-left: calc(50% - min(46vw, 440px)); margin-right: calc(50% - min(46vw, 440px)); }
 figcaption { margin-top: 12px; font-size: 14px; line-height: 1.7; color: var(--muted); }
