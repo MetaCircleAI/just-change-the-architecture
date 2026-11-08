@@ -117,6 +117,34 @@
 <p>两个模型看到的信息完全一样：同一段视频、同一份 patch token。新架构没有引入任何额外的输入，区别只在于这些信息被怎样处理。</p>
 <p>判断会不会碰撞，关键在于小球怎么运动：往哪个方向走、走多快、会不会经过方块所在的位置。这些信息本来就藏在相邻帧的差别里。原架构理论上也能把它算出来，但需要注意力在大量几乎一样的 token 中自己学会"比较相邻两帧"，学起来又慢又难。</p>
 <p>新架构把这一步直接写进了结构：一条支路先比较相邻两帧，再用局部卷积和沿时间轴的注意力，把这些变化整理成连贯的运动；另一条支路处理整体的时空关系，并通过 cross-attention 去读取前一条支路整理好的运动信息。信息还是那些信息，只是被组织成了更适合回答"会不会撞"的形式。</p>
+<h3>换到 3D 场景：CLEVRER</h3>
+<p>这个架构是在我们自己搭的 2D 世界里设计出来的。为了检验它是否只适用于这个简单世界，我们把它原封不动地搬到了 CLEVRER 上（图 6）。CLEVRER 是一个常用的 3D 物理推理数据集：画面里有多个形状、颜色和材质各不相同的物体，在桌面上运动、相互碰撞，还伴随着阴影、反光和遮挡，比 2D 世界复杂得多。</p>
+<p>我们没有在 CLEVRER 上重新设计架构，仅针对不同分辨率的视频调整了 patch 大小等超参数，然后在新数据上从头训练。基线换成了参数量相当的 V-JEPA 式 Transformer，任务仍然是看 32 帧、判断接下来 16 帧里会不会发生碰撞，两个模型使用相同的训练和评测协议（表 3）。</p>
+<figure class="fig"><picture><source media="(max-width: 900px)" srcset="figures/m/clevrer_scene.gif"><img src="figures/clevrer_scene.gif" alt="图 6" loading="lazy" decoding="async"></picture><figcaption><b>图 6</b>　CLEVRER 中的一段视频：多个物体在桌面上运动，并相互碰撞。</figcaption></figure>
+
+<p class="table-caption"><strong>表 3</strong> CLEVRER 上的碰撞预测准确率。我们的架构直接沿用 2D 世界中设计出的结构，没有做任何调整。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th style="text-align: left;">编码器架构</th>
+<th style="text-align: right;">准确率</th>
+<th style="text-align: right;">参数量</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">V-JEPA（缩小版）</td>
+<td style="text-align: right;">60.8%</td>
+<td style="text-align: right;">0.81M</td>
+</tr>
+<tr>
+<td style="text-align: left;">我们的架构</td>
+<td style="text-align: right;"><strong>78.4%</strong></td>
+<td style="text-align: right;"><strong>0.76M</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p>在更复杂的 3D 场景里，新架构的参数更少，准确率却高出近 18 个百分点。显然它的优势并不局限于我们自己搭的 2D 世界。</p>
 <h2>小结</h2>
 <p>两个例子来自完全不同的世界模型：一个在物理仿真里控制人形机器人，一个从视频里学习物理规律。在这两个任务上，我们都没有改变输入、数据或训练目标，只是换了一个架构，结果就有了大幅提升：SuperMimic 的训练时间从 3 小时缩短到 26.6 分钟，碰撞预测的准确率从 67% 提升到 96%。</p>
 <p>两个新架构也有相似之处。原架构都采用了"一刀切"的处理方式：SuperMimic 先把参考动作压缩成一个小向量，再和其他信息拼在一起；V-JEPA 把所有 token 放进同一种 block 里统一处理。新架构则让不同的信息先按各自的特点处理，再在合适的位置交互。这些设计都不复杂，用到的也都是常见的组件，却没有出现在原本的架构里。</p>

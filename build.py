@@ -30,6 +30,11 @@ def figure(m):
     name = path.rsplit("/", 1)[1]; stem, ext = name.rsplit(".", 1)
     small = f"figures/m/{stem}.{'gif' if ext == 'gif' else 'jpg'}"
     lazy = "" if first else ' loading="lazy"'
+    if ext == "mp4":
+        poster = f"figures/{stem}_poster.jpg"
+        img = (f'<video src="{path}" poster="{poster}" autoplay muted loop playsinline preload="metadata" '
+               f'aria-label="{html.escape(alt)}"></video>')
+        return (f'\n<figure class="fig{wide}">{img}<figcaption><b>{html.escape(label)}</b>　{html.escape(cap.strip())}</figcaption></figure>\n')
     img = (f'<picture><source media="(max-width: 900px)" srcset="{small}">'
            f'<img src="{path}" alt="{html.escape(alt)}"{lazy} decoding="async"></picture>')
     return (f'\n<figure class="fig{wide}">{img}'
