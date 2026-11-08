@@ -35,7 +35,7 @@ a { color: var(--blue); text-decoration: none; border-bottom: 1px solid rgba(16,
 
 .fig { margin: 36px 0 40px; }
 .fig img { display: block; width: 100%; height: auto; border-radius: 10px; }
-.fig.wide { margin-left: calc(50% - min(48vw, 540px)); margin-right: calc(50% - min(48vw, 540px)); }
+.fig.wide { margin-left: calc(50% - min(46vw, 440px)); margin-right: calc(50% - min(46vw, 440px)); }
 figcaption { margin-top: 12px; font-size: 14px; line-height: 1.7; color: var(--muted); }
 figcaption b { color: var(--ink); font-weight: 600; }
 
